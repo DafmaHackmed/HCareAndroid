@@ -72,8 +72,7 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
 
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.add(R.id.container, splashscreenFragment, SplashscreenFragment.class.getName());
-        ft.show(splashscreenFragment);
+        ft.replace(R.id.container, splashscreenFragment, SplashscreenFragment.class.getName());
         ft.commit();
     }
 
@@ -107,6 +106,8 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            getFragmentManager().beginTransaction().replace(R.id.container, homeFragment, HomeFragment.class.getName());
+            getFragmentManager().beginTransaction().commit();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -197,8 +198,10 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
 
     public void loadHome(){
         getActionBar().show();
-        getFragmentManager().beginTransaction().replace(R.id.container, homeFragment, HomeFragment.class.getName());
-        getFragmentManager().beginTransaction().commit();
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.container, homeFragment, HomeFragment.class.getName());
+        ft.commit();
 
         Log.e("HCare :: loadHome", "Connected");
     }
