@@ -7,6 +7,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +23,12 @@ import com.empatica.empalink.config.EmpaSensorType;
 import com.empatica.empalink.config.EmpaStatus;
 import com.empatica.empalink.delegate.EmpaDataDelegate;
 import com.empatica.empalink.delegate.EmpaStatusDelegate;
+import com.estimote.sdk.Beacon;
+import com.estimote.sdk.BeaconManager;
+import com.estimote.sdk.Region;
+import com.estimote.sdk.Utils;
+
+import java.util.List;
 
 import fragment.HomeFragment;
 import fragment.SplashscreenFragment;
@@ -33,6 +40,20 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
     private boolean connected;
     public static Fragment splashscreenFragment = new SplashscreenFragment();
     public static Fragment homeFragment = new HomeFragment();
+
+    public static int entrataLuce;
+    public static int bagnoLuceAcqua;
+    public static int cameraLuce;
+    public static int tornoACasa;
+    public static int abilitaCasa;
+    public static int accendiLuce;
+
+    public boolean getLuceAccesaFatta;
+
+    private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
+    private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", ESTIMOTE_PROXIMITY_UUID, null, null);
+
+    private BeaconManager beaconManager;
 
     public boolean isConnected() {
         return connected;
@@ -58,6 +79,40 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
         empatica = new EmpaDeviceManager(HCareActivity.this, HCareActivity.this, HCareActivity.this);
         empatica.authenticateWithAPIKey("fdfe03151260495f854a9338d115d6b2");
 
+        beaconManager = new BeaconManager(this);
+
+        beaconManager.setRangingListener(new BeaconManager.RangingListener() {
+            @Override
+            public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
+                Log.d("##########", "Ranged beacons: " + beacons);
+                for(Beacon b:beacons){
+                    if (isConnected() && SplashscreenFragment.fileDownload) {
+                        if (b.getMinor() == 32585 && b.getMajor() == 50651) {
+                            if (Utils.computeProximity(b) == Utils.Proximity.IMMEDIATE) {
+                                if (!getLuceAccesaFatta) {
+                                    try {
+                                        accendiLuce = 1;
+                                        HomeFragment.sendGet();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    getLuceAccesaFatta = true;
+                                }
+                            } else {
+                                accendiLuce = 0;
+                                try {
+                                    HomeFragment.sendGet();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                getLuceAccesaFatta = false;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
         Log.e("HCare :: initComponents :: v", "end init");
     }
 
@@ -66,6 +121,38 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
         setupActionBar();
         Log.e("HCare :: initUI :: v", "end init");
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+            @Override
+            public void onServiceReady() {
+                try {
+                    beaconManager.startRanging(ALL_ESTIMOTE_BEACONS);
+                } catch (RemoteException e) {
+                    Log.e("##########", "Cannot start ranging", e);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        beaconManager.disconnect();
+        empatica.disconnect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        try {
+            beaconManager.stopRanging(ALL_ESTIMOTE_BEACONS);
+        } catch (RemoteException e) {
+            Log.e("##########", "Cannot stop but it does not matter now", e);
+        }
     }
 
     private void loadFragments(){
@@ -82,35 +169,14 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
         setContentView(R.layout.activity_hcare);
 
         loadFragments();
-        initComponents();
         initUI();
+        initComponents();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.hcare, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            getFragmentManager().beginTransaction().replace(R.id.container, homeFragment, HomeFragment.class.getName());
-            getFragmentManager().beginTransaction().commit();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -178,7 +244,7 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
 
     @Override
     public void didDiscoverDevice(BluetoothDevice device, int rssi, boolean canConnect) {
-        Log.e("HCare :: didDiscoverDevice", "Disovered");
+        Log.e("HCare :: didDiscoverDevice", "Discovered");
 
         if (canConnect){
             empatica.stopScanning();
@@ -189,6 +255,11 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
             }
         }
 
+    }
+
+    public void refindDevice(){
+        empatica.stopScanning();
+        empatica.startScanning();
     }
 
     @Override
@@ -204,6 +275,20 @@ public class HCareActivity extends FragmentActivity implements EmpaDataDelegate,
         ft.commit();
 
         Log.e("HCare :: loadHome", "Connected");
+    }
+
+
+
+    @Override
+    public void onBackPressed(){
+        FragmentManager fm = getFragmentManager();
+        if (fm.getBackStackEntryCount() > 0) {
+            Log.i("MainActivity", "popping backstack");
+            fm.popBackStack();
+        } else {
+            Log.i("MainActivity", "nothing on backstack, calling super");
+            super.onBackPressed();
+        }
     }
 
 }

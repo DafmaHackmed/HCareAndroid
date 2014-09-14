@@ -1,0 +1,103 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context="fragment.HomeFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="65dp" android:weightSum="2" android:gravity="center_vertical"
+            android:id="@+id/linearLayout2" android:background="#0C6BFE">
+
+
+
+            <TextView
+                android:id="@+id/nameHouse"
+                android:gravity="center"
+                android:layout_weight="2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:text=""
+                android:textColor="#ffffff"
+                android:textSize="30sp" />
+
+            <Switch
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:id="@+id/switchView" />
+        </LinearLayout>
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:weightSum="3"
+            android:gravity="center_vertical"
+            android:id="@+id/linearLayout"
+            android:layout_below="@+id/linearLayout2"
+            android:layout_alignParentStart="true">
+
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:id="@+id/imageView"
+                android:gravity="center"
+                android:src="@drawable/plus"
+                android:layout_weight="1" />
+
+            <TextView
+                android:gravity="center"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:layout_gravity="center"
+                android:text="Aggiungi componente"
+                android:textSize="30sp"
+                android:id="@+id/textView" />
+
+        </LinearLayout>
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/listView"
+            android:layout_gravity="center_horizontal|top"
+            android:choiceMode="singleChoice"
+            android:layout_below="@+id/linearLayout"
+            android:layout_above="@+id/linearLayout3" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="70dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_gravity="center"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:background="@android:color/darker_gray"
+            android:id="@+id/linearLayout3">
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Torno a casa!"
+                android:textColor="#ffffff"
+                android:background="#0C6BFE"
+                android:id="@+id/button" />
+        </LinearLayout>
+    </RelativeLayout>
+</FrameLayout>

@@ -26,6 +26,8 @@
         </activity>
 
         <service android:name="com.empatica.empalink.EmpaLinkBLE" />
+        <service android:name="com.estimote.sdk.service.BeaconService"
+            android:exported="false"/>
     </application>
 
 </manifest>
